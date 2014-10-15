@@ -30,6 +30,18 @@
   var dispatch = true;
 
   /**
+   * pushstate enabled flag.
+   */
+
+  var pushstate = true;
+
+  /**
+   * replacestate enabled flag.
+   */
+
+  var replacestate = true;
+
+  /**
    * Base path.
    */
 
@@ -109,6 +121,8 @@
    *
    *    - `click` bind to click events [true]
    *    - `popstate` bind to popstate [true]
+   *    - `pushstate` use history.pushState() [true]
+   *    - `replacestate` use history.replaceState() [true]
    *    - `dispatch` perform initial dispatch [true]
    *
    * @param {Object} options
@@ -121,6 +135,8 @@
     running = true;
     if (false === options.dispatch) dispatch = false;
     if (false !== options.popstate) window.addEventListener('popstate', onpopstate, false);
+    if (false === options.pushstate) pushstate = false;
+    if (false === options.replacestate) replacestate = false;
     if (false !== options.click) window.addEventListener('click', onclick, false);
     if (true === options.hashbang) hashbang = true;
     if (!dispatch) return;
@@ -154,7 +170,7 @@
 
   page.show = function(path, state, dispatch){
     var ctx = new Context(path, state);
-    if (!ctx.unhandled) ctx.pushState();
+    if (!ctx.unhandled && pushstate) ctx.pushState();
     if (false !== dispatch) page.dispatch(ctx);
     return ctx;
   };
@@ -275,11 +291,13 @@
    */
 
   Context.prototype.save = function(){
-    history.replaceState(this.state
-      , this.title
-      , hashbang && this.canonicalPath !== '/'
-        ? '#!' + this.canonicalPath
-        : this.canonicalPath);
+    if (replacestate) {
+      history.replaceState(this.state
+        , this.title
+        , hashbang && this.canonicalPath !== '/'
+          ? '#!' + this.canonicalPath
+          : this.canonicalPath);
+    }
   };
 
   /**
